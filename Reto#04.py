@@ -74,7 +74,7 @@ class Shape:
             n = len(self._vertices)
             self._inner_angles = [(180 * (n - 2)) / n] * n
         else:
-            self._inner_angles = inner_angles
+            print("La figura no es regular, los triángulos tiene funcion especial")
 
     def get_inner_angles(self) -> list:
         """Obtiene los ángulos interiores de la figura."""
@@ -118,7 +118,6 @@ class Triangle(Shape):
                 is_regular: bool = True, 
                 vertices: list = [], 
                 edges: list = [], 
-                inner_angles: list = None
                 ) -> None:
         """
         Inicializa un triángulo con tres vértices, tres aristas y ángulos.
@@ -127,7 +126,6 @@ class Triangle(Shape):
         if len(vertices) == 3 and len(edges) == 3:
             self.set_vertices(*vertices)
             self.set_edges(*edges)
-            self.set_inner_angles(inner_angles)
         else:
             raise ValueError("Un triángulo debe tener 3 vértices y 3 aristas.")
 
@@ -138,15 +136,33 @@ class Triangle(Shape):
                          * (s - self._edges[1].get_length()) 
                          * (s - self._edges[2].get_length())
                 )
+    def compute_inner_angles(self) -> None:
+        """Calcula los ángulos interiores del triángulo."""
+        a = self._edges[0].get_length()
+        b = self._edges[1].get_length()
+        c = self._edges[2].get_length()
+        
+        cos_A = (b**2 + c**2 - a**2) / (2 * b * c)
+        cos_B = (a**2 + c**2 - b**2) / (2 * a * c)
+        cos_C = (a**2 + b**2 - c**2) / (2 * a * b)
+
+        radians_A = math.acos(cos_A)
+        radians_B = math.acos(cos_B)
+        radians_C = math.acos(cos_C)
+
+        self._inner_angles = [
+            math.degrees(radians_A),
+            math.degrees(radians_B), 
+            math.degrees(radians_C)]
+
 
 
 class Isosceles(Triangle):
     def __init__(self, is_regular: bool = False, 
             vertices: list =[], 
-            edges: list = [], 
-            inner_angles: list = None) -> None:
+            edges: list = [], ) -> None:
         """Inicializa un triángulo isósceles."""
-        super().__init__(is_regular, vertices, edges, inner_angles)
+        super().__init__(is_regular, vertices, edges)
 
 
 class Equilateral(Triangle):
@@ -158,10 +174,9 @@ class Equilateral(Triangle):
 class Scalene(Triangle):
     def __init__(self, is_regular: bool = False, 
         vertices: list =[], 
-        edges: list = [], 
-        inner_angles: list = None) -> None:
+        edges: list = []) -> None:
         """Inicializa un triángulo escaleno."""
-        super().__init__(is_regular, vertices, edges, inner_angles)
+        super().__init__(is_regular, vertices, edges)
 
 
 class RightTriangle(Triangle):
@@ -170,7 +185,7 @@ class RightTriangle(Triangle):
         edges: list = [], 
         inner_angles: list = None) -> None:
         """Inicializa un triángulo rectangulo."""
-        super().__init__(is_regular, vertices, edges, inner_angles)
+        super().__init__(is_regular, vertices, edges)
 
 
 # Ejemplo de uso
