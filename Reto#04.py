@@ -27,9 +27,13 @@ class Point:
 class Line:
     def __init__(self, start_point: Point, end_point: Point) -> None:
         """Inicializa un segmento de línea definido por dos puntos."""
-        self.start_point = start_point
-        self.end_point = end_point
-        self.length = start_point.compute_distance(end_point)
+        self._start_point = start_point
+        self._end_point = end_point
+        self._length = start_point.compute_distance(end_point)
+
+    def get_length(self) -> float:
+        """Obtiene la longitud de la línea."""
+        return self._length
 
 
 class Shape:
@@ -62,11 +66,13 @@ class Shape:
         return self._edges
 
     def set_inner_angles(self, inner_angles: list = None) -> None:
-        """Establece los ángulos interiores de la figura. Se calculan automáticamente si es regular."""
+        """
+        Establece los ángulos interiores de la figura. 
+        Se calculan automáticamente si es regular.
+        """
         if self._is_regular:
             n = len(self._vertices)
-            for i in range(n):
-                self._inner_angles = [(180 * (n - 2)) / n ]
+            self._inner_angles = [(180 * (n - 2)) / n] * n
         else:
             self._inner_angles = inner_angles
 
@@ -76,11 +82,12 @@ class Shape:
 
     def compute_area(self) -> float:
         """Calcula el área de la figura (debe ser implementado en subclases)."""
-        raise NotImplementedError("El método para calcular el área debe implementarse en las subclases.")
+        raise NotImplementedError(
+            "El método para calcular el área debe implementarse en las subclases.")
 
     def compute_perimeter(self) -> float:
         """Calcula el perímetro de la figura como la suma de sus aristas."""
-        return sum(edge.length for edge in self._edges)
+        return sum(edge.get_length() for edge in self._edges)
 
 
 class Rectangle(Shape):
@@ -95,7 +102,7 @@ class Rectangle(Shape):
 
     def compute_area(self) -> float:
         """Calcula el área del rectángulo como el producto de dos lados."""
-        return self._edges[0].length * self._edges[1].length
+        return self._edges[0].get_length() * self._edges[1].get_length()
 
 
 class Square(Rectangle):
@@ -103,7 +110,7 @@ class Square(Rectangle):
         """
         Calcula el área del cuadrado como el cuadrado de la longitud de un lado.
         """
-        return self._edges[0].length ** 2
+        return self._edges[0].get_length() ** 2
 
 
 class Triangle(Shape):
@@ -127,17 +134,17 @@ class Triangle(Shape):
     def compute_area(self) -> float:
         """Calcula el área del triángulo utilizando la fórmula de Herón."""
         s = self.compute_perimeter() / 2
-        return math.sqrt(s * (s - self._edges[0].length) 
-                         * (s - self._edges[1].length) 
-                         * (s - self._edges[2].length)
+        return math.sqrt(s * (s - self._edges[0].get_length()) 
+                         * (s - self._edges[1].get_length()) 
+                         * (s - self._edges[2].get_length())
                 )
-    
+
 
 class Isosceles(Triangle):
     def __init__(self, is_regular: bool = False, 
-                vertices: list =[], 
-                edges: list = [], 
-                inner_angles: list = None) -> None:
+            vertices: list =[], 
+            edges: list = [], 
+            inner_angles: list = None) -> None:
         """Inicializa un triángulo isósceles."""
         super().__init__(is_regular, vertices, edges, inner_angles)
 
@@ -150,21 +157,20 @@ class Equilateral(Triangle):
 
 class Scalene(Triangle):
     def __init__(self, is_regular: bool = False, 
-                vertices: list =[], 
-                edges: list = [], 
-                inner_angles: list = None) -> None:
-        """Inicializa un triángulo isósceles."""
+        vertices: list =[], 
+        edges: list = [], 
+        inner_angles: list = None) -> None:
+        """Inicializa un triángulo escaleno."""
         super().__init__(is_regular, vertices, edges, inner_angles)
 
 
 class RightTriangle(Triangle):
     def __init__(self, is_regular: bool = False, 
-                vertices: list =[], 
-                edges: list = [], 
-                inner_angles: list = None) -> None:
-        """Inicializa un triángulo isósceles."""
+        vertices: list =[], 
+        edges: list = [], 
+        inner_angles: list = None) -> None:
+        """Inicializa un triángulo rectangulo."""
         super().__init__(is_regular, vertices, edges, inner_angles)
-
 
 
 # Ejemplo de uso
@@ -195,5 +201,5 @@ l6 = Line(p6, p7)
 l7 = Line(p7, p5)
 
 triangle = Triangle(vertices=[p5, p6, p7], edges=[l5, l6, l7])
-print(f"Área del triángulo: {(triangle.compute_area()).__round__(2)}")
+print(f"Área del triángulo: {triangle.compute_area().__round__(2)}")
 print(f"Perímetro del triángulo: {triangle.compute_perimeter().__round__(2)}")
