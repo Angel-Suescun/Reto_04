@@ -88,9 +88,13 @@ class Point:
 class Line:
     def __init__(self, start_point: Point, end_point: Point) -> None:
         """Inicializa un segmento de línea definido por dos puntos."""
-        self.start_point = start_point
-        self.end_point = end_point
-        self.length = start_point.compute_distance(end_point)
+        self._start_point = start_point
+        self._end_point = end_point
+        self._length = start_point.compute_distance(end_point)
+
+    def get_length(self) -> float:
+        """Obtiene la longitud de la línea."""
+        return self._length
 
 
 class Shape:
@@ -129,8 +133,7 @@ class Shape:
         """
         if self._is_regular:
             n = len(self._vertices)
-            for i in range(n):
-                self._inner_angles = [(180 * (n - 2)) / n ]
+            self._inner_angles = [(180 * (n - 2)) / n] * n
         else:
             self._inner_angles = inner_angles
 
@@ -145,7 +148,7 @@ class Shape:
 
     def compute_perimeter(self) -> float:
         """Calcula el perímetro de la figura como la suma de sus aristas."""
-        return sum(edge.length for edge in self._edges)
+        return sum(edge.get_length() for edge in self._edges)
 
 
 class Rectangle(Shape):
@@ -160,7 +163,7 @@ class Rectangle(Shape):
 
     def compute_area(self) -> float:
         """Calcula el área del rectángulo como el producto de dos lados."""
-        return self._edges[0].length * self._edges[1].length
+        return self._edges[0].get_length() * self._edges[1].get_length()
 
 
 class Square(Rectangle):
@@ -168,7 +171,7 @@ class Square(Rectangle):
         """
         Calcula el área del cuadrado como el cuadrado de la longitud de un lado.
         """
-        return self._edges[0].length ** 2
+        return self._edges[0].get_length() ** 2
 
 
 class Triangle(Shape):
@@ -192,17 +195,17 @@ class Triangle(Shape):
     def compute_area(self) -> float:
         """Calcula el área del triángulo utilizando la fórmula de Herón."""
         s = self.compute_perimeter() / 2
-        return math.sqrt(s * (s - self._edges[0].length) 
-                         * (s - self._edges[1].length) 
-                         * (s - self._edges[2].length)
+        return math.sqrt(s * (s - self._edges[0].get_length()) 
+                         * (s - self._edges[1].get_length()) 
+                         * (s - self._edges[2].get_length())
                 )
-    
+
 
 class Isosceles(Triangle):
     def __init__(self, is_regular: bool = False, 
-                vertices: list =[], 
-                edges: list = [], 
-                inner_angles: list = None) -> None:
+            vertices: list =[], 
+            edges: list = [], 
+            inner_angles: list = None) -> None:
         """Inicializa un triángulo isósceles."""
         super().__init__(is_regular, vertices, edges, inner_angles)
 
@@ -215,21 +218,20 @@ class Equilateral(Triangle):
 
 class Scalene(Triangle):
     def __init__(self, is_regular: bool = False, 
-                vertices: list =[], 
-                edges: list = [], 
-                inner_angles: list = None) -> None:
-        """Inicializa un triángulo isósceles."""
+        vertices: list =[], 
+        edges: list = [], 
+        inner_angles: list = None) -> None:
+        """Inicializa un triángulo escaleno."""
         super().__init__(is_regular, vertices, edges, inner_angles)
 
 
 class RightTriangle(Triangle):
     def __init__(self, is_regular: bool = False, 
-                vertices: list =[], 
-                edges: list = [], 
-                inner_angles: list = None) -> None:
-        """Inicializa un triángulo isósceles."""
+        vertices: list =[], 
+        edges: list = [], 
+        inner_angles: list = None) -> None:
+        """Inicializa un triángulo rectangulo."""
         super().__init__(is_regular, vertices, edges, inner_angles)
-
 
 
 # Ejemplo de uso
@@ -260,7 +262,7 @@ l6 = Line(p6, p7)
 l7 = Line(p7, p5)
 
 triangle = Triangle(vertices=[p5, p6, p7], edges=[l5, l6, l7])
-print(f"Área del triángulo: {(triangle.compute_area()).__round__(2)}")
+print(f"Área del triángulo: {triangle.compute_area().__round__(2)}")
 print(f"Perímetro del triángulo: {triangle.compute_perimeter().__round__(2)}")
 ```
 
@@ -299,314 +301,137 @@ class MenuItem:
 
     def __init__(self, name: str, price: int) -> None:
         """Inicializa el artículo del menú con nombre y precio."""
-        self.name = name
-        self.price = price
+        self._name = name
+        self._price = price
 
     def calculate_total(self, order: 'Order') -> float:
         """Calcula el total de una orden aplicando descuento."""
-        
+
         def compound_order(order) -> None:
             """Mediante de que se compone el pedido, genera un descuento."""
             # Descuento del 10% si hay un MainDish y un Drink
-            if any(isinstance(item, MainDishes) for item in order.items.keys()):  # Verifica si hay MainDishes
-                for key, item in order.items.items():
-                    if isinstance(key, Drink):  # Si el item es una bebida
-                        self.items[key] = item * 0.9  # 10% de descuento en Drink
+            if any(isinstance(item, MainDishes) for item in order._items.keys()):
+                for key, item in order._items.items():
+                    if isinstance(key, Drink):
+                        order._items[key] = item * 0.9  # 10% de descuento en Drink
                         print("Descuento del 10% en Drink")
                         break
 
             # Descuento del 5% si hay un Breakfast y un Dessert
-            if any(isinstance(item, Breakfast) for item in order.items.keys()):  # Verifica si hay Breakfast
-                for key, item in order.items.items():
-                    if isinstance(key, Dessert):  # Si el item es un Dessert
-                        order.items[key] = item * 0.95  # 5% de descuento en Dessert
+            if any(isinstance(item, Breakfast) for item in order._items.keys()):
+                for key, item in order._items.items():
+                    if isinstance(key, Dessert):
+                        order._items[key] = item * 0.95  # 5% de descuento en Dessert
                         print("Descuento del 5% en Dessert")
                         break
-        
+
         compound_order(order)
-        total = sum(order.items.values())
-        total -= total * order.discount_percentage
+        total = sum(order._items.values())
+        total -= total * order._discount_percentage
         return total
 
     def print_order(self, order: 'Order') -> None:
         """Imprime los detalles de la orden y el total con descuento."""
         total = self.calculate_total(order)
-        for item, price in order.items.items():
-            print(f"{item.name} - {price}")
-        print(f"Descuento: {order.discount_percentage * 100}%")
+        for item, price in order._items.items():
+            print(f"{item._name} - {price}")
+        print(f"Descuento: {order._discount_percentage * 100}%")
         print(f"Total: ${total:,} pesos")
 
     def pagar(self, order):
-        order.type_payment.pagar(order.total)
-        
-
+        order._type_payment.pagar(order._total)
 
 class Order:
     """Representa una orden realizada por un cliente."""
 
-    def __init__(self, type_payment,  student: bool = False) -> None:
+    def __init__(self, type_payment, student: bool = False) -> None:
         """Inicializa la orden con un descuento y una lista de artículos."""
-        self.items: dict = {}  # Diccionario de artículos con cantidades
-        self.discount_percentage: float = 0  # Descuento inicial
-        self.student = student  # Flag para indicar si es estudiante
-        self.type_payment = type_payment
+        self._items: dict = {}
+        self._discount_percentage: float = 0
+        self._student = student
+        self._type_payment = type_payment
 
     def add_item(self, item: MenuItem, quantity: int) -> None:
         """Añade un artículo a la orden multiplicado por la cantidad."""
-        self.items[item] = quantity * item.price
+        self._items[item] = quantity * item._price
 
     def calculate_total(self) -> float:
         """Calcula el total de la orden aplicando el descuento."""
 
         def compound_order(self) -> None:
             """Mediante de que se compone el pedido, genera un descuento."""
-            # Descuento del 10% si hay un MainDish y un Drink
-            if any(isinstance(item, MainDishes) for item in self.items.keys()):  # Verifica si hay MainDishes
-                for key, item in self.items.items():
-                    if isinstance(key, Drink):  # Si el item es una bebida
-                        self.items[key] = item * 0.9  # 10% de descuento en Drink
+            if any(isinstance(item, MainDishes) for item in self._items.keys()):
+                for key, item in self._items.items():
+                    if isinstance(key, Drink):
+                        self._items[key] = item * 0.9
                         print("Descuento del 10% en Drink")
                         break
 
-            # Descuento del 5% si hay un Breakfast y un Dessert
-            if any(isinstance(item, Breakfast) for item in self.items.keys()):  # Verifica si hay Breakfast
-                for key, item in self.items.items():
-                    if isinstance(key, Dessert):  # Si el item es un Dessert
-                        self.items[key] = item * 0.95  # 5% de descuento en Dessert
+            if any(isinstance(item, Breakfast) for item in self._items.keys()):
+                for key, item in self._items.items():
+                    if isinstance(key, Dessert):
+                        self._items[key] = item * 0.95
                         print("Descuento del 5% en Dessert")
                         break
-        
+
         compound_order(self)
-        total = sum(self.items.values())
-        total -= total * self.discount_percentage  # Aplica descuento
+        total = sum(self._items.values())
+        total -= total * self._discount_percentage
         return total
 
     def promos(self) -> None:
         """Aplica promociones y descuentos según reglas predefinidas."""
-        self.discount_percentage = 0  # Restablece el descuento
+        self._discount_percentage = 0
 
-        # Descuento por cantidad de artículos
-        if len(self.items) >= 6:  # 6 platos o más 10% de descuento
-            self.discount_percentage += 0.1
+        if len(self._items) >= 6:
+            self._discount_percentage += 0.1
 
-        # Descuento adicional para estudiantes
-        if self.student:  # Descuento del 20% para estudiantes
-            self.discount_percentage += 0.2
+        if self._student:
+            self._discount_percentage += 0.2
 
-        # Descuento aleatorio del 100%
-        if random.random() < 0.1:  # 10% de probabilidad
-            self.discount_percentage = 1
+        if random.random() < 0.1:
+            self._discount_percentage = 1
 
     def print_order(self) -> None:
         """Imprime la orden y el total con descuento aplicado."""
-        self.total = self.calculate_total()
-        for item, price in self.items.items():
-            print(f"{item.name} - {price}")
-        print(f"Descuento: {self.discount_percentage * 100}%")
-        print(f"Total: ${self.total:,} pesos")
+        self._total = self.calculate_total()
+        for item, price in self._items.items():
+            print(f"{item._name} - {price}")
+        print(f"Descuento: {self._discount_percentage * 100}%")
+        print(f"Total: ${self._total:,} pesos")
 
     def pagar(self):
-        self.type_payment.pagar(self.total)
-
-
+        self._type_payment.pagar(self._total)
 
 class Drink(MenuItem):
-    """Clase para representar una bebida del menú."""
-
     def __init__(self, name: str, price: int, unit: int) -> None:
-        """
-        Inicializa una bebida con su nombre, precio y unidad de medida(ml).
-        """
         super().__init__(name, price)
-        self.unit = unit
-
-    def set_name(self, name: str) -> None:
-        """Establece el nombre de la bebida."""
-        self.name = name
-
-    def set_price(self, price: int) -> None:    
-        """Establece el precio de la bebida."""
-        self.price = price
-
-    def set_unit(self, unit: int) -> None:
-        """Establece la unidad de medida de la bebida."""
-        self.unit = unit
-
-    def get_name(self) -> str:
-        """Obtiene el nombre de la bebida."""
-        return self.name
-    
-    def get_price(self) -> int:
-        """Obtiene el precio de la bebida."""
-        return self.price
-    
-    def get_unit(self) -> int:
-        """Obtiene la unidad de medida de la bebida."""
-        return self.unit
+        self._unit = unit
 
 class MainDishes(MenuItem):
-    """Clase para representar un plato principal del menú."""
-
     def __init__(self, name: str, price: int, ingredients: list) -> None:
-        """
-        Inicializa un plato principal con su nombre, precio e ingredientes.
-        """
         super().__init__(name, price)
-        self.ingredients: list = ingredients
-
-    def set_name(self, name: str) -> None:
-        """Establece el nombre del plato principal."""
-        self.name = name
-
-    def set_price(self, price: int) -> None:    
-        """Establece el precio delplato principal."""
-        self.price = price
-
-    def set_ingredients(self, ingredients: list) -> None:
-        """Establece los ingredientes del plato principal."""
-        self.ingredients = ingredients
-
-    def get_name(self) -> str:
-        """Obtiene el nombre del plato principal."""
-        return self.name
-    
-    def get_price(self) -> int:
-        """Obtiene el precio del plato principal."""
-        return self.price
-    
-    def get_ingredients(self) -> int:
-        """Obtiene los ingredientes del plato principal."""
-        return self.ingredients
+        self._ingredients: list = ingredients
 
 class Dessert(MenuItem):
-    """Clase para representar un postre del menú."""
-
     def __init__(self, name: str, price: int, size: int) -> None:
-        """Inicializa un postre con su nombre, precio y tamaño."""
         super().__init__(name, price)
-        self.size = size
-    
-    def set_name(self, name: str) -> None:
-        """Establece el nombre del postre."""
-        self.name = name
-
-    def set_price(self, price: int) -> None:    
-        """Establece el precio del postre."""
-        self.price = price
-
-    def set_size(self, size: int) -> None:
-        """Establece el tamaño del postre."""
-        self.size = size
-
-    def get_name(self) -> str:
-        """Obtiene el nombre del postre."""
-        return self.name
-    
-    def get_price(self) -> int:
-        """Obtiene el precio del postre."""
-        return self.price
-    
-    def get_size(self) -> int:
-        """Obtiene el tamaño del postre."""
-        return self.size
+        self._size = size
 
 class Salads(MenuItem):
-    """Clase para representar una ensalada del menú."""
-
     def __init__(self, name: str, price: int, container: str) -> None:
-        """
-        Inicializa una ensalada con su nombre, precio y tipo de recipiente.
-        """
         super().__init__(name, price)
-        self.container = container
-
-    def set_name(self, name: str) -> None:
-        """Establece el nombre de la ensalada."""
-        self.name = name
-
-    def set_price(self, price: int) -> None:
-        """Establece el precio de la ensalada."""
-        self.price = price
-
-    def set_container(self, container: str) -> None:
-        """Establece el tipo de recipiente de la ensalada."""
-        self.container = container
-
-    def get_name(self) -> str:
-        """Obtiene el nombre de la ensalada."""
-        return self.name
-    
-    def get_price(self) -> int:
-        """Obtiene el precio de la ensalada."""
-        return self.price   
-    
-    def get_container(self) -> str:
-        """Obtiene el tipo de recipiente de la ensalada."""
-        return self.container
+        self._container = container
 
 class Soups(MenuItem):
-    """Clase para representar una sopa del menú."""
-
     def __init__(self, name: str, price: int, temperature: int) -> None:
-        """Inicializa una sopa con su nombre, precio y temperatura."""
         super().__init__(name, price)
-        self.temperature = temperature  # 1: caliente, 2: frío
-
-    def set_name(self, name: str) -> None:
-        """Establece el nombre de la sopa."""
-        self.name = name
-
-    def set_price(self, price: int) -> None:
-        """Establece el precio de la sopa."""
-        self.price = price
-
-    def set_temperature(self, temperature: int) -> None:
-        """Establece la temperatura de la sopa."""
-        self.temperature = temperature
-    
-    def get_name(self) -> str:
-        """Obtiene el nombre de la sopa."""
-        return self.name    
-    
-    def get_price(self) -> int:
-        """Obtiene el precio de la sopa."""
-        return self.price
-    
-    def get_temperature(self) -> int:
-        """Obtiene la temperatura de la sopa."""
-        return self.temperature
+        self._temperature = temperature
 
 class Breakfast(MenuItem):
-    """Clase para representar un desayuno del menú."""
-
     def __init__(self, name: str, price: int, quantity: int) -> None:
-        """Inicializa un desayuno con su nombre, precio y cantidad."""
         super().__init__(name, price)
-        self.quantity = quantity
-
-    def set_name(self, name: str) -> None:
-        """Establece el nombre del desayuno."""
-        self.name = name
-    
-    def set_price(self, price: int) -> None:
-        """Establece el precio del desayuno."""
-        self.price = price  
-    
-    def set_quantity(self, quantity: int) -> None:
-        """Establece la cantidad de unidades del desayuno."""
-        self.quantity = quantity
-
-    def get_name(self) -> str:
-        """Obtiene el nombre del desayuno."""
-        return self.name
-    
-    def get_price(self) -> int:
-        """Obtiene el precio del desayuno."""
-        return self.price
-    
-    def get_quantity(self) -> int:
-        """Obtiene la cantidad de unidades del desayuno."""
-        return self.quantity
+        self._quantity = quantity
 
 class MedioPago:
     def __init__(self):
@@ -618,11 +443,11 @@ class MedioPago:
 class Tarjeta(MedioPago):
     def __init__(self, numero, cvv):
         super().__init__()
-        self.numero = numero
-        self.cvv = cvv
+        self._numero = numero
+        self._cvv = cvv
 
     def pagar(self, monto):
-        print(f"Pagando $ {monto:,} con tarjeta ({self.numero[-4:]})")
+        print(f"Pagando $ {monto:,} con tarjeta ({self._numero[-4:]})")
         print("Realizando transacción...")
         time.sleep(2)
         print("Transacción exitosa.")
@@ -630,19 +455,17 @@ class Tarjeta(MedioPago):
 class Efectivo(MedioPago):
     def __init__(self, monto_entregado):
         super().__init__()
-        self.monto_entregado = monto_entregado
+        self._monto_entregado = monto_entregado
 
     def pagar(self, monto):
-        print(f"Contando dinero...")
+        print("Contando dinero...")
         time.sleep(2)
-        if self.monto_entregado >= monto:
-            print(f"Pago realizado en efectivo. Cambio: $ 
-                {(self.monto_entregado - monto):,}")
-
+        if self._monto_entregado >= monto:
+            print(f"Pago realizado en efectivo. Cambio: ${self._monto_entregado - monto:,}")
         else:
-            print(f"Fondos insuficientes. Faltan $ 
-                {(monto - self.monto_entregado):,} para completar el pago.")
+            print(f"Fondos insuficientes. Faltan ${monto - self._monto_entregado:,} para completar el pago.")
 
+# Ejemplo de uso
 
 # Bebidas
 cafe = Drink("Café", 2000, 200)  # 200 ml
@@ -689,16 +512,12 @@ arepas_con_huevo = Breakfast("Arepas con Huevo", 5000, 2)  # 2 unidades
 calentado = Breakfast("Calentado", 7000, 1)  # 1 porción
 empanadas_con_aji = Breakfast("Empanadas con Aji", 4500, 3)  # 3 unidades
 
-
-# Funcionamiento de las órdenes
 print("---Orden 1---")
 tarjeta = Tarjeta("1234567890123456", 453)
 cliente = Order(tarjeta, student=True)
 cliente.add_item(arepas, 2)
 cliente.add_item(cafe, 1)
-cliente.add_item(bandeja_paisa, 1)
 cliente.add_item(arroz_con_leche, 1)
-
 cliente.promos()
 cliente.print_order()
 cliente.pagar()
@@ -720,5 +539,6 @@ cliente2.add_item(arepas_con_huevo, 1)
 cliente2.promos()
 cliente2.print_order()
 cliente2.pagar()
+
 
 ```
